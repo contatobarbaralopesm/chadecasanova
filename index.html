@@ -372,7 +372,7 @@
   .progress-label{display:flex;justify-content:space-between;font-size:.8rem;font-weight:700;color:var(--ink-soft);margin-bottom:8px;}
   .progress-track{height:10px;border-radius:999px;background:var(--taupe-soft);overflow:hidden;}
   .progress-fill{height:100%;background:var(--terracotta);border-radius:999px;transition:width .5s var(--ease);}
-  .success-note{font-size:.86rem;color:var(--ink-soft);text-align:center;margin-top:14px;}
+  .success-note{font-size:.78rem;font-style:italic;color:var(--ink-soft);text-align:center;margin-top:14px;}
 
   /* Admin */
   .admin-tabs{display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--line);margin-bottom:20px;padding-bottom:10px;}
@@ -454,6 +454,7 @@
     pendingIcon: 'gift',
     successNumbers: null,
     successProductName: null,
+    successBuyUrl: null,
     successFree: 0,
     successGain: 0,
     rsvpQty: 1,
@@ -655,7 +656,7 @@
 
   function renderExplainer(state){
     var steps = [
-      ['Confirme sua presença ali em cima.', 'Se ainda não confirmou, volta lá! A cartela é individual, então cada pessoa que for precisa confirmar a presença para receber a sua.'],
+      ['Confirme sua presença ali em cima.', 'Se ainda não confirmou, volta lá!'],
       ['Escolha um presente da nossa lista.', 'Além de ajudar a gente (Deus lhe dê em dobro!!), o presente que você escolher também vai te garantir números na sua cartela de bingo!'],
       ['"Uai, mas como assim?"', 'Todo presente é especial pra gente, mas os presentes têm valores diferentes. Então, pra deixar o jogo mais divertido, quanto maior o valor do presente escolhido, mais números você garante na sua cartela.###E pode escolher mais de um presente, viu? Não vamos achar ruim, não!'],
       ['Escolheu? Ebaaa!', 'Assim que você confirmar pra gente qual presente vai levar, a gente te conta quantos números você já garantiu na sua cartela.'],
@@ -670,8 +671,8 @@
       '<section class="explainer" id="bingo-section"><div class="explainer-inner">' +
         '<div class="explainer-head">' +
           '<span class="eyebrow">Jogatina</span>' +
-          '<h2>Fica bobo, vai ter bingo!</h2>' +
-          '<p>Pra agradecer vocês por fazerem parte desse momento e deixar o nosso chá de casa nova ainda mais divertido, <span class="accent-text">a gente resolveu fazer um Bingo</span>! Porque, né? É impossível não gostar de um bingozinho.</p>' +
+          '<h2>Fica, bobo, vai ter bingo!</h2>' +
+          '<p>Pra agradecer vocês por fazerem parte desse momento e deixar o nosso chá de casa nova ainda mais divertido, <span class="accent-text">a gente resolveu fazer um Bingo</span>! É impossível não gostar de um bingozinho.</p>' +
           '<p class="steps-lead">E pra participar é bem simples:</p>' +
         '</div>' +
         '<div class="step-grid">' + cardsHtml + '</div>' +
@@ -685,7 +686,7 @@
         '<h2>Tá, mas como eu escolho o presente?</h2>' +
         '<p>A gente colocou vários tipos de presentes e diferentes valores na lista, então tem opção pra todo mundo.</p>' +
         '<div class="callout-box"><p>' + ICON_HEART + ' E, de verdade, qualquer presente que você escolher vai ser muito especial pra gente. ' + ICON_HEART + '</p></div>' +
-        '<p>E se você já quiser facilitar a vida <span class="accent-text">em cada presente já colocamos um link de compra</span>, assim fica mais fácil para você já conseguir comprar certinho que estamos precisando!</p>' +
+        '<p>E se você já quiser facilitar a vida, <span class="accent-text">em cada presente já colocamos um link de compra</span>, assim fica mais fácil para você já conseguir comprar certinho que estamos precisando!</p>' +
         '<div class="address-box">' +
           '<p>E se quiser, você pode mandar para nossa casa direto.</p>' +
           '<p><strong>Endereço:</strong> Rio de Janeiro, 1593 - apt 901A, 30160-042 - Lourdes, Belo Horizonte</p>' +
@@ -736,7 +737,9 @@
       : '<div class="art-icon">' + iconSvg(p.icon || 'gift') + '</div>';
     var actions;
     if (claimed){
-      actions = '';
+      actions = p.buyUrl
+        ? '<a class="btn btn-tier" href="' + esc(p.buyUrl) + '" target="_blank" rel="noopener">Ver produto no site</a>'
+        : '';
     } else {
       actions = '' +
         '<button class="btn btn-outline" data-action="claim-open" data-id="' + p.id + '">Escolher esse presente</button>' +
@@ -815,6 +818,9 @@
 
   function renderSuccessModal(state){
     var pct = Math.round((ui.successFree / (state.config.cardSize||12)) * 100);
+    var buyBtn = ui.successBuyUrl
+      ? '<div class="form-actions" style="margin-top:22px"><a class="btn btn-tier" href="' + esc(ui.successBuyUrl) + '" target="_blank" rel="noopener" style="width:100%;--tier-btn:var(--terracotta);--tier-btn-deep:var(--terracotta-deep)">Comprar presente</a></div>'
+      : '';
     return '' +
       '<div class="overlay">' +
         '<div class="modal">' +
@@ -826,8 +832,9 @@
             '<div class="progress-label"><span>Com esse presente, sua cartela de bingo tem</span><span>' + ui.successFree + ' / ' + (state.config.cardSize||12) + '</span></div>' +
             '<div class="progress-track"><div class="progress-fill" style="width:' + pct + '%"></div></div>' +
           '</div>' +
+          buyBtn +
+          '<div class="form-actions" style="margin-top:10px"><button class="btn btn-outline" data-action="success-more" style="width:100%">Quero garantir mais números</button></div>' +
           '<p class="success-note">Se não, tá tudo bem! A gente te espera no dia ' + esc(state.event.dateShort || '03/10') + ' no ' + esc(state.event.location || 'Zoom Zoom Bar') + '. Traga sua sorte!</p>' +
-          '<div class="form-actions"><button class="btn btn-tier" data-action="success-more" style="width:100%;--tier-btn:var(--terracotta);--tier-btn-deep:var(--terracotta-deep)">Quero garantir mais números</button></div>' +
         '</div>' +
       '</div>';
   }
@@ -966,67 +973,18 @@
       '</div>';
   }
 
-  function pendingNumbers(state){
-    var set = {};
-    Object.keys(state.bingo.guestCards||{}).forEach(function(k){
-      state.bingo.guestCards[k].needed.forEach(function(n){ set[n] = true; });
-    });
-    return Object.keys(set).map(Number);
-  }
-
   function renderAdminBingo(state){
-    var b = state.bingo;
-    if (!b.finalized){
-      var bmap = guestBonusMap(state);
-      var keys = Object.keys(bmap).sort(function(a,b2){ return bmap[b2].raw - bmap[a].raw; });
-      var rows = keys.map(function(k){
-        var g = bmap[k];
-        var free = freeCountFor(state, g.raw);
-        return '<tr><td>' + esc(g.name) + '</td><td>' + esc(g.products.join(', ')) + '</td><td>' + free + ' / ' + state.config.cardSize + '</td></tr>';
-      }).join('');
-      return '' +
-        '<div class="section-title">Prévia das cartelas</div>' +
-        '<div class="section-hint">Antes da festa, gere as cartelas oficiais: cada convidado ganha uma cartela de ' + state.config.cardSize + ' números, com os números que ele já garantiu de graça marcados, e o resto sorteado ao vivo. Gere de novo a qualquer momento se mais gente confirmar presente — isso reinicia o sorteio.</div>' +
-        (keys.length ? ('<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Convidado</th><th>Presente(s)</th><th>Números garantidos</th></tr></thead><tbody>' + rows + '</tbody></table></div>') : '<div class="empty-state">Ninguém confirmou presente ainda.</div>') +
-        '<button class="btn btn-dark" style="width:auto" data-action="finalize-cards"' + (keys.length?'':' disabled') + '>Gerar cartelas para o sorteio</button>';
-    }
-
-    var all = pendingNumbers(state);
-    var remaining = all.filter(function(n){ return b.drawOrder.indexOf(n) === -1; });
-    var lastDrawn = b.drawOrder.length ? b.drawOrder[b.drawOrder.length-1] : null;
-    var guestKeys = Object.keys(b.guestCards);
-    var progressRows = guestKeys.map(function(k){
-      var card = b.guestCards[k];
-      var missing = card.needed.filter(function(n){ return b.drawOrder.indexOf(n) === -1; }).length;
-      return { k:k, name: card.name, missing: missing };
-    }).sort(function(a,c){ return a.missing - c.missing; });
-    function winnerBox(label, w){
-      return '<div class="winner-box"><div class="wlabel">' + label + '</div>' +
-        (w ? ('<div class="wname">' + esc(w.name) + '</div>') : '<div class="wname" style="color:var(--ink-soft)">aguardando</div>') +
-        '</div>';
-    }
+    var bmap = guestBonusMap(state);
+    var keys = Object.keys(bmap).sort(function(a,b2){ return bmap[b2].raw - bmap[a].raw; });
+    var rows = keys.map(function(k){
+      var g = bmap[k];
+      var free = freeCountFor(state, g.raw);
+      return '<tr><td>' + esc(g.name) + '</td><td>' + esc(g.products.join(', ')) + '</td><td>' + free + ' / ' + state.config.cardSize + '</td></tr>';
+    }).join('');
     return '' +
-      '<div class="section-title">Bingo ao vivo</div>' +
-      '<div class="section-hint">' + all.length + ' números em jogo, entre ' + guestKeys.length + ' cartela(s). Sorteie com o grupo reunido.</div>' +
-      '<div class="draw-stage">' +
-        (lastDrawn !== null ? ('<div class="draw-number">' + lastDrawn + '</div>') : '<div style="color:var(--ink-soft)">Nenhum número sorteado ainda</div>') +
-        '<div style="margin-top:18px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">' +
-          '<button class="btn btn-tier" style="width:auto;--tier-btn:var(--terracotta);--tier-btn-deep:var(--terracotta-deep)" data-action="draw-next"' + (remaining.length===0?' disabled':'') + '>Sortear próximo número</button>' +
-          '<button class="btn btn-outline" style="width:auto" data-action="bingo-reset">Reiniciar sorteio</button>' +
-          '<button class="btn btn-outline" style="width:auto" data-action="finalize-cards">Gerar cartelas de novo</button>' +
-        '</div>' +
-        (b.drawOrder.length ? ('<div class="draw-log">' + b.drawOrder.map(function(n){ return '<span class="draw-chip">' + n + '</span>'; }).join('') + '</div>') : '') +
-      '</div>' +
-      '<div class="winners-grid">' +
-        winnerBox('1º lugar', b.winners.first) +
-        winnerBox('2º lugar', b.winners.second) +
-        winnerBox('3º lugar', b.winners.third) +
-      '</div>' +
-      '<div class="divider-h"></div>' +
-      '<div class="section-title" style="font-size:1rem">Quem está mais perto</div>' +
-      '<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Convidado</th><th>Faltam</th></tr></thead><tbody>' +
-        progressRows.map(function(r){ return '<tr><td>' + esc(r.name) + '</td><td>' + r.missing + '</td></tr>'; }).join('') +
-      '</tbody></table></div>';
+      '<div class="section-title">Números garantidos por convidado</div>' +
+      '<div class="section-hint">As cartelas são físicas (compradas prontas, com números fixos de fábrica) — o sorteio em si acontece ao vivo na festa, com o material físico. Aqui você só acompanha quantos números cada convidado já entra com direito de marcar de graça na cartela dele, com base nos presentes que escolheu.</div>' +
+      (keys.length ? ('<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Convidado</th><th>Presente(s)</th><th>Números garantidos</th></tr></thead><tbody>' + rows + '</tbody></table></div>') : '<div class="empty-state">Ninguém escolheu presente ainda.</div>');
   }
 
   function renderAdminSettings(state){
@@ -1070,7 +1028,7 @@
 
   function renderAdminPage(state){
     if (!ui.adminAuthed) return renderAdminLoginPage();
-    var tabs = [['overview','Visão geral'],['rsvps','Confirmações'],['products','Presentes'],['guests','Convidados'],['bingo','Bingo ao vivo'],['settings','Configurações']];
+    var tabs = [['overview','Visão geral'],['rsvps','Confirmações'],['products','Presentes'],['guests','Convidados'],['bingo','Números do bingo'],['settings','Configurações']];
     var body =
       ui.adminTab === 'overview' ? renderAdminOverview(state) :
       ui.adminTab === 'rsvps' ? renderAdminRsvps(state) :
@@ -1329,6 +1287,7 @@
        and the modal would look like it closed itself. */
     ui.modal = 'success';
     ui.successProductName = product.name;
+    ui.successBuyUrl = product.buyUrl || '';
     ui.successFree = g ? freeCountFor(newState, g.raw) : 0;
     var res = await publishState(newState);
     if (!res.ok){
@@ -1476,71 +1435,6 @@
     if (res.ok) showToast('Senha atualizada!');
   }
 
-  async function finalizeCards(){
-    if (!confirm('Gerar (ou atualizar) as cartelas oficiais? Isso sorteia os números de cada convidado de novo e reinicia o jogo ao vivo.')) return;
-    var newState = structuredCloneState(STATE);
-    var bmap = guestBonusMap(newState);
-    var keys = Object.keys(bmap);
-    var cardSize = newState.config.cardSize;
-    var perGuestNeeded = {};
-    var neededTotal = 0;
-    keys.forEach(function(k){
-      var free = freeCountFor(newState, bmap[k].raw);
-      var needed = cardSize - free;
-      perGuestNeeded[k] = needed;
-      neededTotal += needed;
-    });
-    var poolMax = Math.max(75, neededTotal);
-    var pool = [];
-    for (var n = 1; n <= poolMax; n++) pool.push(n);
-    for (var i = pool.length - 1; i > 0; i--){
-      var j = Math.floor(Math.random() * (i + 1));
-      var t = pool[i]; pool[i] = pool[j]; pool[j] = t;
-    }
-    var idx = 0;
-    var guestCards = {};
-    keys.forEach(function(k){
-      var count = perGuestNeeded[k];
-      var nums = pool.slice(idx, idx + count).sort(function(a,b){ return a - b; });
-      idx += count;
-      guestCards[k] = { name: bmap[k].name, free: freeCountFor(newState, bmap[k].raw), needed: nums, products: bmap[k].products };
-    });
-    newState.bingo = { finalized: true, cardSize: cardSize, guestCards: guestCards, drawOrder: [], winners: { first: null, second: null, third: null } };
-    var res = await publishState(newState);
-    if (res.ok) showToast('Cartelas geradas! ' + keys.length + ' convidado(s) prontos pro sorteio.');
-  }
-
-  async function drawNextNumber(){
-    var newState = structuredCloneState(STATE);
-    var all = pendingNumbers(newState);
-    var remaining = all.filter(function(n){ return newState.bingo.drawOrder.indexOf(n) === -1; });
-    if (!remaining.length){ showToast('Todos os números já foram sorteados!'); return; }
-    var next = remaining[Math.floor(Math.random() * remaining.length)];
-    newState.bingo.drawOrder.push(next);
-    var keys = Object.keys(newState.bingo.guestCards);
-    var newlyDone = keys.filter(function(k){
-      var already = ['first','second','third'].some(function(slot){
-        return newState.bingo.winners[slot] && newState.bingo.winners[slot].key === k;
-      });
-      if (already) return false;
-      var card = newState.bingo.guestCards[k];
-      return card.needed.every(function(n){ return newState.bingo.drawOrder.indexOf(n) !== -1; });
-    }).sort();
-    newlyDone.forEach(function(k){
-      var slot = !newState.bingo.winners.first ? 'first' : !newState.bingo.winners.second ? 'second' : !newState.bingo.winners.third ? 'third' : null;
-      if (slot) newState.bingo.winners[slot] = { key: k, name: newState.bingo.guestCards[k].name };
-    });
-    await publishState(newState);
-  }
-
-  async function resetBingo(){
-    if (!confirm('Reiniciar o sorteio? Isso apaga os números já sorteados e os vencedores, mas mantém as cartelas.')) return;
-    var newState = structuredCloneState(STATE);
-    newState.bingo.drawOrder = [];
-    newState.bingo.winners = { first: null, second: null, third: null };
-    await publishState(newState);
-  }
-
   function exportCSV(){
     var rows = [['Nome','Presente','Data']];
     STATE.products.filter(function(p){ return p.claimedBy; }).forEach(function(p){
@@ -1580,9 +1474,6 @@
     else if (action === 'admin-back'){ e.preventDefault(); leaveAdminRoute(); }
     else if (action === 'admin-logout'){ ui.adminAuthed = false; leaveAdminRoute(); }
     else if (action === 'admin-tab'){ ui.adminTab = el.dataset.tab; render(); }
-    else if (action === 'draw-next') drawNextNumber();
-    else if (action === 'bingo-reset') resetBingo();
-    else if (action === 'finalize-cards') finalizeCards();
     else if (action === 'product-add-open') openProductAdd();
     else if (action === 'product-edit-open') openProductEdit(id);
     else if (action === 'product-delete') deleteProduct(id);
