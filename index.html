@@ -1348,21 +1348,45 @@
     ui.editingProductId = id; ui.pendingImage = p.image || null; ui.pendingIcon = p.icon || 'gift'; ui.modal = 'product-form'; render();
   }
 
+  async function resolveProductImage(){
+    var img = ui.pendingImage;
+    if (!img) return null;
+    if (img.indexOf('data:') !== 0) return img;
+    if (!supabaseClient){
+      showToast('Sem conexao com o banco agora: o presente vai ser salvo sem imagem. Adicione a imagem de novo quando a conexao voltar.');
+      return null;
+    }
+    try{
+      var blob = await (await fetch(img)).blob();
+      var ext = (blob.type && blob.type.indexOf('/') !== -1) ? blob.type.split('/')[1] : 'jpg';
+      var path = 'produtos/' + Date.now() + '_' + Math.random().toString(36).slice(2) + '.' + ext;
+      var upload = await supabaseClient.storage.from('product-images').upload(path, blob, { contentType: blob.type || 'image/jpeg', upsert: true });
+      if (upload.error) throw upload.error;
+      var pub = supabaseClient.storage.from('product-images').getPublicUrl(path);
+      return (pub && pub.data && pub.data.publicUrl) ? pub.data.publicUrl : null;
+    } catch(err){
+      console.error('Falha ao enviar imagem:', err);
+      showToast('Nao consegui enviar a imagem agora. O presente foi salvo sem imagem, tente de novo em alguns minutos.');
+      return null;
+    }
+  }
+
   async function handleProductFormSubmit(form){
     var name = form.querySelector('#pf-name').value.trim();
     var price = parseFloat(form.querySelector('#pf-price').value) || 0;
     var tier = computeTierFromPrice(STATE, price);
     var buyUrl = form.querySelector('#pf-url').value.trim();
     if (!name) return;
+    var imageUrl = await resolveProductImage();
     var newState = structuredCloneState(STATE);
     if (ui.editingProductId){
       var existing = newState.products.find(function(x){ return x.id === ui.editingProductId; });
       if (existing){
         existing.name = name; existing.price = price; existing.tier = tier; existing.buyUrl = buyUrl;
-        existing.icon = ui.pendingIcon; existing.image = ui.pendingImage;
+        existing.icon = ui.pendingIcon; existing.image = imageUrl;
       }
     } else {
-      newState.products.push({ id: uid('p'), name: name, price: price, tier: tier, icon: ui.pendingIcon, image: ui.pendingImage, buyUrl: buyUrl, claimedBy: null });
+      newState.products.push({ id: uid('p'), name: name, price: price, tier: tier, icon: ui.pendingIcon, image: imageUrl, buyUrl: buyUrl, claimedBy: null });
     }
     var res = await publishState(newState);
     if (res.ok) closeModal();
@@ -1596,7 +1620,8 @@
         subscribeRealtime();
       } catch(err){
         console.error('Falha ao conectar no Supabase:', err);
-        showToast('Nao consegui conectar ao banco de dados agora. Mostrando a ultima versao salva localmente.');
+        supabaseClient = null;
+        showToast('Nao consegui conectar ao banco de dados agora. Recarregue a pagina antes de editar qualquer coisa, para nao arriscar salvar por cima de dados reais.');
       }
     } else {
       console.warn('Supabase nao configurado: preencha SUPABASE_URL e SUPABASE_ANON_KEY no inicio do script.');
