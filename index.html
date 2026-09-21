@@ -1127,7 +1127,7 @@
       products: pRes.data.map(productRowToState),
       rsvps: rRes.data.map(function(r){ return { name: r.name, confirmedAt: r.confirmed_at }; }),
       config: {
-        cardSize: 12,
+        cardSize: bingoRow.card_size || 12,
         bonuses: settings.bonuses || { barato: 2, medio: 4, caro: 6, premium: 8 },
         adminPasswordHash: settings.admin_password_hash || STATE.config.adminPasswordHash,
         prizes: settings.prizes || { first: '', second: '', third: '' },
@@ -1438,7 +1438,10 @@
 
   async function handleWeightsFormSubmit(form){
     var newState = structuredCloneState(STATE);
-    newState.config.cardSize = Math.max(4, parseInt(form.querySelector('#w-cardsize').value, 10) || 12);
+    var newCardSize = Math.max(4, parseInt(form.querySelector('#w-cardsize').value, 10) || 12);
+    newState.config.cardSize = newCardSize;
+    if (!newState.bingo) newState.bingo = {};
+    newState.bingo.cardSize = newCardSize;
     newState.config.bonuses.barato = Math.max(0, parseInt(form.querySelector('#w-barato').value, 10) || 0);
     newState.config.bonuses.medio = Math.max(0, parseInt(form.querySelector('#w-medio').value, 10) || 0);
     newState.config.bonuses.caro = Math.max(0, parseInt(form.querySelector('#w-caro').value, 10) || 0);
